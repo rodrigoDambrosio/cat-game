@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pecera Tamagotchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1420;
+    --screen: #050a12;
+    --text: #eaf4ff;
+    --text-dim: #8fa6c4;
+
+    --water: #7fe3ff;
+    --water-dirty: #9fd15a;
+    --water-hungry: #ffd27f;
+    --water-bad: #ef7a5f;
+
+    --feed: #ff9f43;
+    --clean: #4fc3f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #18263a, var(--bg) 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    padding: 16px;
+  }
+  .game {
+    background: linear-gradient(180deg, #1a2436, #111a28);
+    border: 3px solid #2b3c56;
+    box-shadow: 0 0 0 4px #050a12, 0 14px 0 rgba(0,0,0,0.45);
+    padding: 20px;
+    width: 380px;
+    max-width: 100%;
+    text-align: center;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+  .tabs a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    text-decoration: none;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    background: var(--screen);
+    border: 1px solid #2b3c56;
+  }
+  .tabs a.active {
+    color: #10192a;
+    background: var(--water);
+    border-color: var(--water);
+  }
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 4px 0 10px;
+  }
+  .subtitle {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .stage {
+    background: var(--screen);
+    border: 2px solid #050409;
+    padding: 10px 6px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* CRT scanlines */
+  .stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.30) 0px,
+      rgba(0,0,0,0.30) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .screen {
+    margin: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.15;
+    white-space: pre;
+    color: var(--water);
+    text-shadow: 0 0 6px currentColor;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.4s ease;
+  }
+  .screen.mood-hungry   { color: var(--water-hungry); }
+  .screen.mood-dirty    { color: var(--water-dirty); }
+  .screen.mood-terrible { color: var(--water-bad); }
+  /* characters drawn in their own color instead of the water tint */
+  .screen .ink-food { color: var(--feed); text-shadow: 0 0 6px currentColor; }
+  .fishname {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+    margin: 4px 0 8px;
+    color: var(--water);
+  }
+  .age {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .status-line {
+    font-size: 0.8rem;
+    min-height: 34px;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  button {
+    border: none;
+    border-radius: 0;
+    padding: 13px 6px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    line-height: 1.5;
+    color: #10192a;
+    cursor: pointer;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.55); }
+  #btn-feed { background: var(--feed); }
+  #btn-clean { background: var(--clean); }
+  button:disabled {
+    background: #2b3c56 !important;
+    color: #6d819c;
+    cursor: not-allowed;
+    filter: none;
+  }
+  .sound-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+  .sound-toggle button {
+    background: var(--screen);
+    color: var(--text-dim);
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+    padding: 7px 12px;
+  }
+  .sound-toggle button.active { background: var(--water); color: #10192a; }
+  .footer-row { font-size: 0.7rem; color: var(--text-dim); }
+  .reset-link {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: var(--clean);
+    text-decoration: underline;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .reset-link:active { transform: none; box-shadow: none; }
+  @media (max-width: 400px) {
+    .screen { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+  <div class="game">
+    <div class="tabs">
+      <a href="index.html">INICIO</a>
+      <a href="cat.html">GATO</a>
+      <a href="fish.html" class="active">PEZ</a>
+    </div>
+
+    <h1>&gt;&lt;(((o&gt; PECERA</h1>
+    <div class="subtitle">Cuidá a tu pez virtual</div>
+
+    <div class="stage">
+      <pre id="screen" class="screen"></pre>
+    </div>
+
+    <div class="fishname" id="fishname">BURBUJA</div>
+    <div class="age" id="age">Edad: 0 días</div>
+    <div class="status-line" id="statusLine">Todo tranquilo en la pecera.</div>
+
+    <div class="buttons">
+      <button id="btn-feed">ALIMENTAR</button>
+      <button id="btn-clean">LIMPIAR AGUA</button>
+    </div>
+
+    <div class="sound-toggle">
+      <span>sonido</span>
+      <button id="btn-sound" class="active">ON</button>
+    </div>
+
+    <div class="footer-row">
+      Progreso guardado automáticamente · <button class="reset-link" id="resetBtn">reiniciar</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const SAVE_KEY = 'pecera-tamagotchi-save-v1';
+  const TICK_MS = 3000;     // stat decay interval
+  const FRAME_MS = 140;     // ASCII redraw interval
+  const W = 40;             // tank inner width, in characters
+  const H = 11;             // tank inner height (row 0 = surface, last = gravel)
+  const SEGMENTS = 10;
+  const DECAY = { food: 1.2, water: 0.7 };
+
+  const els = {
+    screen: document.getElementById('screen'),
+    statusLine: document.getElementById('statusLine'),
+    age: document.getElementById('age'),
+    fishname: document.getElementById('fishname'),
+    btnFeed: document.getElementById('btn-feed'),
+    btnClean: document.getElementById('btn-clean'),
+    btnSound: document.getElementById('btn-sound'),
+    resetBtn: document.getElementById('resetBtn'),
+  };
+
+  function defaultState() {
+    return {
+      food: 80,
+      water: 80,
+      birthTime: Date.now(),
+      lastUpdate: Date.now(),
+      name: 'BURBUJA',
+      sound: true,
+      godMode: false,
+    };
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return defaultState();
+      return Object.assign(defaultState(), JSON.parse(raw));
+    } catch (e) {
+      return defaultState();
+    }
+  }
+
+  let state = load();
+
+  function save() {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+    } catch (e) {
+      // storage unavailable: keep playing without saving
+    }
+  }
+
+  function clamp(v) { return Math.max(0, Math.min(100, v)); }
+
+  function applyDecaySince(lastTime) {
+    const ticks = Math.max(0, (Date.now() - lastTime) / TICK_MS);
+    if (ticks <= 0 || state.godMode) return;
+    // dirty water stresses the fish, so it gets hungry faster
+    const stress = state.water < 20 ? 1.4 : 1;
+    state.food = clamp(state.food - DECAY.food * ticks * stress);
+    state.water = clamp(state.water - DECAY.water * ticks);
+  }
+
+  function currentMood() {
+    if (state.food < 25 && state.water < 25) return 'terrible';
+    if (state.food < 25) return 'hungry';
+    if (state.water < 25) return 'dirty';
+    if ((state.food + state.water) / 2 > 75) return 'happy';
+    return 'neutral';
+  }
+
+  function statusFor(mood) {
+    switch (mood) {
+      case 'terrible': return 'Hambre y agua podrida... ¡necesito las dos cosas ya!';
+      case 'hungry':   return 'Tengo hambre, ¿me tirás unas escamitas?';
+      case 'dirty':    return 'El agua está turbia, ¡subo a la superficie a respirar!';
+      case 'happy':    return '¡Agua cristalina y panza llena! Nado feliz.';
+      default:         return 'Todo tranquilo en la pecera.';
+    }
+  }
+
+  // Seeded RNG so junk and gravel are placed once and don't jump around
+  // between frames.
+  function seeded(seed) {
+    let s = seed;
+    return function () {
+      s = (s * 1103515245 + 12345) % 2147483648;
+      return s / 2147483648;
+    };
+  }
+
+  const JUNK = (function () {
+    const rnd = seeded(1337);
+    const chars = '.,:;*%';
+    const spots = [];
+    for (let i = 0; i < 30; i++) {
+      spots.push({
+        x: 1 + Math.floor(rnd() * (W - 2)),
+        y: 1 + Math.floor(rnd() * (H - 2)),
+        ch: chars[Math.floor(rnd() * chars.length)],
+        drift: rnd() < 0.5 ? -1 : 1,
+      });
+    }
+    return spots;
+  })();
+
+  const GRAVEL = (function () {
+    const rnd = seeded(99);
+    const chars = '..:..o.:.*';
+    let row = '';
+    for (let x = 0; x < W; x++) row += chars[Math.floor(rnd() * chars.length)];
+    return row;
+  })();
+
+  const PLANTS = [{ x: 4, h: 4 }, { x: 22, h: 3 }, { x: 34, h: 5 }];
+
+  // '@' is the eye, replaced according to mood.
+  const FISH_R = [
+    ['\\       ',
+     ' >==(@)>',
+     '/       '],
+    ['/       ',
+     ' >==(@)>',
+     '\\       '],
+  ];
+  const FISH_L = [
+    ['       /',
+     '<(@)==< ',
+     '       \\'],
+    ['       \\',
+     '<(@)==< ',
+     '       /'],
+  ];
+  const FISH_W = 8;
+  const FISH_H = 3;
+
+  const fish = { x: 12, y: 4, dir: 1, targetY: 4, wander: 0 };
+  let pellets = [];
+  let bubbles = [];
+  let sweep = -1;      // cleaning cloth column; -1 = not cleaning
+  let frame = 0;
+
+  function moodEye(mood) {
+    if (mood === 'terrible') return 'x';
+    if (mood === 'hungry') return 'O';
+    if (mood === 'dirty') return '-';
+    return 'o';
+  }
+
+  function moodSpeed(mood) {
+    switch (mood) {
+      case 'terrible': return 0.25;
+      case 'hungry':   return 0.45;
+      case 'dirty':    return 0.40;
+      case 'happy':    return 0.90;
+      default:         return 0.70;
+    }
+  }
+
+  function mouth() {
+    return { x: Math.round(fish.x) + (fish.dir > 0 ? FISH_W - 1 : 0), y: Math.round(fish.y) + 1 };
+  }
+
+  function nearestPellet() {
+    let best = null;
+    let bestD = Infinity;
+    for (const p of pellets) {
+      if (p.delay > 0) continue;
+      const d = Math.abs(p.x - fish.x) + Math.abs(p.y - fish.y);
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    return best;
+  }
+
+  function stepFish(mood) {
+    const speed = moodSpeed(mood);
+    const target = mood === 'terrible' ? null : nearestPellet();
+
+    if (target) {
+      const center = fish.x + FISH_W / 2;
+      if (Math.abs(target.x - center) > 1) fish.dir = target.x > center ? 1 : -1;
+      fish.targetY = Math.max(1, Math.min(H - FISH_H - 1, target.y - 1));
+    } else if (mood === 'dirty' || mood === 'terrible') {
+      // dirty water: stay at the surface gasping for air
+      fish.targetY = 1;
+      if (--fish.wander <= 0) {
+        fish.wander = 14 + Math.floor(Math.random() * 20);
+        if (Math.random() < 0.4) fish.dir *= -1;
+      }
+    } else {
+      if (--fish.wander <= 0) {
+        fish.wander = 12 + Math.floor(Math.random() * 24);
+        fish.targetY = 1 + Math.random() * (H - FISH_H - 2);
+        if (Math.random() < 0.3) fish.dir *= -1;
+      }
+    }
+
+    fish.x += speed * fish.dir;
+    if (fish.x < 1) { fish.x = 1; fish.dir = 1; }
+    if (fish.x > W - FISH_W - 1) { fish.x = W - FISH_W - 1; fish.dir = -1; }
+    fish.y += Math.max(-0.34, Math.min(0.34, fish.targetY - fish.y));
+
+    // eat pellets within reach of the mouth
+    const m = mouth();
+    pellets = pellets.filter(function (p) {
+      if (p.delay > 0) return true;
+      if (Math.abs(p.x - m.x) <= 1 && Math.abs(p.y - m.y) <= 1) {
+        state.food = clamp(state.food + 9);
+        bubbles.push({ x: m.x, y: m.y, age: 0 });
+        blip();
+        return false;
+      }
+      return true;
+    });
+  }
+
+  function stepPellets() {
+    const next = [];
+    for (const p of pellets) {
+      if (p.delay > 0) { p.delay--; next.push(p); continue; }
+      if (frame % 3 === 0) p.y += 1;
+      if (p.y >= H - 1) {
+        // uneaten food rots in the gravel and dirties the water
+        state.water = clamp(state.water - 2);
+        continue;
+      }
+      next.push(p);
+    }
+    pellets = next;
+  }
+
+  function stepBubbles(mood) {
+    const chance = mood === 'happy' ? 0.35 : (mood === 'terrible' ? 0.05 : 0.18);
+    if (Math.random() < chance) {
+      const m = mouth();
+      bubbles.push({ x: m.x + fish.dir, y: m.y, age: 0 });
+    }
+    if (Math.random() < 0.12) {
+      bubbles.push({ x: 1 + Math.floor(Math.random() * (W - 2)), y: H - 2, age: 0 });
+    }
+    const next = [];
+    for (const b of bubbles) {
+      b.age++;
+      if (b.age % 2 === 0) b.y -= 1;
+      if (b.y > 0) next.push(b);
+    }
+    bubbles = next.slice(-24);
+  }
+
+  // Color layer parallel to the character grid: each cell stores the ink it
+  // was drawn with (null = water color).
+  let paint = [];
+  let brush = null;
+
+  function blankGrid() {
+    const g = [];
+    paint = [];
+    for (let y = 0; y < H; y++) {
+      g.push(new Array(W).fill(' '));
+      paint.push(new Array(W).fill(null));
+    }
+    return g;
+  }
+
+  function put(grid, x, y, ch) {
+    const xi = Math.round(x);
+    const yi = Math.round(y);
+    if (xi < 0 || xi >= W || yi < 0 || yi >= H) return;
+    grid[yi][xi] = ch;
+    paint[yi][xi] = brush;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // One span per run of same-ink characters, not one per character.
+  function rowHtml(chars, colors) {
+    let html = '';
+    let i = 0;
+    while (i < chars.length) {
+      const tint = colors[i];
+      let text = '';
+      while (i < chars.length && colors[i] === tint) { text += chars[i]; i++; }
+      html += tint ? '<span class="ink-' + tint + '">' + esc(text) + '</span>' : esc(text);
+    }
+    return html;
+  }
+
+  function drawSprite(grid, rows, x, y) {
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < rows[r].length; c++) {
+        const ch = rows[r][c];
+        if (ch !== ' ') put(grid, x + c, y + r, ch);
+      }
+    }
+  }
+
+  function asciiBar(v) {
+    const filled = Math.round((v / 100) * SEGMENTS);
+    return '[' + '#'.repeat(filled) + '-'.repeat(SEGMENTS - filled) + ']';
+  }
+
+  function drawScreen() {
+    const mood = currentMood();
+    const grid = blankGrid();
+
+    // water surface with a rolling wave
+    const wave = Math.floor(frame / 3);
+    for (let x = 0; x < W; x++) {
+      grid[0][x] = (x + wave) % 5 === 0 ? '-' : '~';
+    }
+
+    for (const pl of PLANTS) {
+      for (let i = 0; i < pl.h; i++) {
+        const y = H - 2 - i;
+        const bend = Math.sin((frame / 10) + i * 0.8 + pl.x) > 0 ? 1 : 0;
+        put(grid, pl.x + bend, y, bend ? ')' : '(');
+      }
+    }
+
+    // the dirtier the water, the more junk floats around
+    const junkCount = Math.round(((100 - state.water) / 100) * JUNK.length);
+    for (let i = 0; i < junkCount; i++) {
+      const j = JUNK[i];
+      const drift = Math.floor(frame / 14) * j.drift;
+      const x = (((j.x + drift) % (W - 2)) + (W - 2)) % (W - 2) + 1;
+      if (sweep >= 0 && x <= sweep) continue;  // already wiped by the cloth
+      put(grid, x, j.y, j.ch);
+    }
+
+    for (let x = 0; x < W; x++) grid[H - 1][x] = GRAVEL[x];
+
+    for (const b of bubbles) {
+      put(grid, b.x, b.y, b.age < 4 ? '.' : (b.age < 10 ? 'o' : 'O'));
+    }
+
+    brush = 'food';
+    for (const p of pellets) {
+      if (p.delay <= 0) put(grid, p.x, p.y, '.');
+    }
+    brush = null;
+
+    const frames = fish.dir > 0 ? FISH_R : FISH_L;
+    const rows = frames[Math.floor(frame / 3) % 2].map(function (r) {
+      return r.replace('@', moodEye(mood));
+    });
+    drawSprite(grid, rows, Math.round(fish.x), Math.round(fish.y));
+
+    // cleaning cloth sweeping left to right
+    if (sweep >= 0) {
+      for (let y = 0; y < H - 1; y++) {
+        put(grid, sweep, y, y % 2 === 0 ? ')' : '(');
+        put(grid, sweep - 1, y, '*');
+      }
+    }
+
+    const border = '+' + '='.repeat(W) + '+';
+    const lines = [border];
+    for (let y = 0; y < H; y++) lines.push('|' + rowHtml(grid[y], paint[y]) + '|');
+    lines.push(border);
+    lines.push('');
+    lines.push(' <span class="ink-food">COMIDA ' + asciiBar(state.food) + '</span>'
+      + '  AGUA ' + asciiBar(state.water));
+
+    els.screen.innerHTML = lines.join('\n');
+    els.screen.className = 'screen mood-' + mood;
+  }
+
+  function animate() {
+    frame++;
+    const mood = currentMood();
+    stepFish(mood);
+    stepPellets();
+    stepBubbles(mood);
+    if (sweep >= 0) {
+      sweep += 3;
+      if (sweep > W + 1) sweep = -1;
+    }
+    drawScreen();
+  }
+
+  // ---- 8-bit audio (oscillators only, no files) ----
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function tone(type, steps, vol, dur, glide) {
+    if (!state.sound) return;
+    try {
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      steps.forEach(function (s, i) {
+        if (glide && i > 0) osc.frequency.exponentialRampToValueAtTime(s[1], now + s[0]);
+        else osc.frequency.setValueAtTime(s[1], now + s[0]);
+      });
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.setValueAtTime(vol, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      osc.start(now);
+      osc.stop(now + dur + 0.02);
+    } catch (e) {
+      // audio unavailable
+    }
+  }
+
+  function blub()       { tone('sine', [[0, 700], [0.18, 160]], 0.16, 0.22, true); }
+  function blip()       { tone('square', [[0, 880], [0.04, 1180]], 0.07, 0.08); }
+  function feedSound()  { tone('square', [[0, 880], [0.05, 660], [0.1, 520]], 0.11, 0.16); }
+  function cleanSound() { tone('square', [[0, 180], [0.3, 900]], 0.09, 0.34, true); }
+
+  function feed() {
+    if (pellets.length >= 12) return;   // cap food in the tank
+    for (let i = 0; i < 4; i++) {
+      pellets.push({
+        x: 4 + Math.floor(Math.random() * (W - 8)),
+        y: 1,
+        delay: i * 4,
+      });
+    }
+    feedSound();
+    tick();
+  }
+
+  function cleanWater() {
+    state.water = clamp(state.water + 35);
+    sweep = 0;
+    cleanSound();
+    tick();
+  }
+
+  function tick() {
+    applyDecaySince(state.lastUpdate);
+    state.lastUpdate = Date.now();
+    render();
+    save();
+  }
+
+  function updateAge() {
+    const ms = Date.now() - state.birthTime;
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms / 3600000) % 24);
+    els.age.textContent = 'Edad: ' + days + ' día(s), ' + hours + 'h';
+  }
+
+  function render() {
+    updateAge();
+    const mood = currentMood();
+    els.fishname.textContent = state.name;
+    els.statusLine.textContent = statusFor(mood);
+    els.btnSound.textContent = state.sound ? 'ON' : 'OFF';
+    els.btnSound.classList.toggle('active', state.sound);
+    drawScreen();
+  }
+
+  els.btnFeed.addEventListener('click', feed);
+  els.btnClean.addEventListener('click', cleanWater);
+  els.screen.addEventListener('click', function () {
+    const m = mouth();
+    bubbles.push({ x: m.x + fish.dir, y: m.y, age: 0 });
+    blub();
+  });
+  els.btnSound.addEventListener('click', function () {
+    state.sound = !state.sound;
+    if (state.sound) blub();
+    save();
+    render();
+  });
+  els.resetBtn.addEventListener('click', function () {
+    if (confirm('¿Reiniciar la pecera? Se perderá el progreso.')) {
+      state = defaultState();
+      pellets = [];
+      bubbles = [];
+      save();
+      render();
+    }
+  });
+
+  applyDecaySince(state.lastUpdate);
+  state.lastUpdate = Date.now();
+  save();
+  render();
+
+  setInterval(tick, TICK_MS);
+  setInterval(animate, FRAME_MS);
+
+  // ---- console cheats ----
+  const STATS = ['food', 'water'];
+  const DAY_MS = 86400000;
+
+  function setStat(name, value) {
+    const key = String(name).toLowerCase();
+    if (!STATS.includes(key)) return 'Unknown stat. Use: ' + STATS.join(', ') + '.';
+    state[key] = clamp(Number(value));
+    tick();
+    return key + ' = ' + Math.round(state[key]);
+  }
+
+  window.fish = {
+    help() {
+      console.log([
+        '',
+        '  +==================================+',
+        '  |   FISH TANK - console cheats     |',
+        '  +==================================+',
+        '',
+        '  fish.status()             show stats',
+        '  fish.fill()               everything to 100',
+        '  fish.drain()              everything to 0',
+        '  fish.set("food", 50)      set one stat',
+        '  fish.god()                toggle: stats stop decaying',
+        '  fish.age(30)              add days of age',
+        '  fish.rename("Nemo")       rename the fish',
+        '  fish.feed()               drop food',
+        '  fish.clean()              clean the water',
+        '  fish.bubble()             blub',
+        '  fish.reset()              wipe the save',
+        '',
+        '  stats: ' + STATS.join(', '),
+        '',
+      ].join('\n'));
+    },
+    status() {
+      return {
+        name: state.name,
+        food: Math.round(state.food),
+        water: Math.round(state.water),
+        mood: currentMood(),
+        godMode: state.godMode,
+        ageDays: Math.floor((Date.now() - state.birthTime) / DAY_MS),
+      };
+    },
+    set: setStat,
+    fill() {
+      state.food = state.water = 100;
+      tick();
+      return 'All stats at 100.';
+    },
+    drain() {
+      state.food = state.water = 0;
+      tick();
+      return 'All stats at 0.';
+    },
+    god() {
+      state.godMode = !state.godMode;
+      tick();
+      return 'God mode ' + (state.godMode ? 'ON: stats no longer decay.' : 'OFF.');
+    },
+    age(days) {
+      state.birthTime -= (Number(days) || 1) * DAY_MS;
+      tick();
+      return state.name + ' is now ' + Math.floor((Date.now() - state.birthTime) / DAY_MS) + ' day(s) old.';
+    },
+    rename(newName) {
+      if (!newName) return 'Name: ' + state.name;
+      state.name = String(newName).toUpperCase().slice(0, 12);
+      tick();
+      return 'Renamed to ' + state.name;
+    },
+    feed() { feed(); },
+    clean() { cleanWater(); },
+    bubble() { blub(); },
+    reset() {
+      state = defaultState();
+      pellets = [];
+      bubbles = [];
+      save();
+      render();
+      return 'Save wiped.';
+    },
+  };
+
+  console.log(
+    '%c' + [
+      '',
+      '   \\           ' + '  the fish is swimming...',
+      '    >==(o)>    ' + '  type fish.help() for cheats',
+      '   /           ',
+      '',
+    ].join('\n'),
+    'color:#7fe3ff; font-family:monospace; font-size:12px;'
+  );
+})();
+</script>
+</body>
+</html>

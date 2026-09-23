@@ -3,420 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Michi Tamagotchi</title>
+<title>Tamagotchis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-top: #ffe9d6;
-    --bg-bottom: #ffd3e0;
-    --card-bg: #fffaf3;
-    --accent: #ff8fab;
-    --accent-dark: #e56b8a;
-    --text: #4a3b3b;
-    --bar-bg: #f0e0d6;
+    --bg: #10121d;
+    --panel: #1b172b;
+    --screen: #0a0812;
+    --text: #f1eef7;
+    --text-dim: #9d96bb;
+    --cat: #ffe15a;
+    --fish: #7fe3ff;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     min-height: 100vh;
     font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
-    background: linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    background: radial-gradient(circle at 50% 0%, #1d2033, var(--bg) 70%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text);
-    padding: 16px;
+    padding: 20px;
   }
-  .game {
-    background: var(--card-bg);
-    border-radius: 24px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    padding: 24px;
-    width: 360px;
+  .menu {
+    width: 380px;
     max-width: 100%;
     text-align: center;
   }
   h1 {
-    margin: 0 0 4px;
-    font-size: 1.5rem;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin: 0 0 8px;
   }
   .subtitle {
-    font-size: 0.85rem;
-    opacity: 0.7;
-    margin-bottom: 12px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 26px;
   }
-  .stage {
-    background: #fef1e6;
-    border-radius: 18px;
-    padding: 20px 10px;
-    margin-bottom: 16px;
-    position: relative;
-    min-height: 160px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cat {
-    font-size: 5.5rem;
-    display: inline-block;
-    transition: transform 0.2s ease;
-    filter: drop-shadow(0 6px 6px rgba(0,0,0,0.15));
-  }
-  .cat.bounce { animation: bounce 0.5s ease; }
-  .cat.sleep { animation: sway 3s ease-in-out infinite; }
-  .cat.sad { animation: shiver 0.4s ease; }
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-18px); }
-  }
-  @keyframes sway {
-    0%, 100% { transform: rotate(-4deg); }
-    50% { transform: rotate(4deg); }
-  }
-  @keyframes shiver {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
-  }
-  .zzz {
-    position: absolute;
-    top: 10px;
-    right: 40px;
-    font-size: 1.4rem;
-    opacity: 0.8;
-    animation: floatUp 2s ease-in-out infinite;
-  }
-  @keyframes floatUp {
-    0% { transform: translateY(0); opacity: 0.9; }
-    100% { transform: translateY(-20px); opacity: 0; }
-  }
-  .catname {
-    font-weight: 600;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-  }
-  .status-line {
-    font-size: 0.85rem;
-    min-height: 20px;
-    margin-bottom: 12px;
-    color: var(--accent-dark);
-    font-weight: 600;
-  }
-  .stats { text-align: left; margin-bottom: 16px; }
-  .stat-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 0.85rem;
-  }
-  .stat-row .icon { width: 22px; text-align: center; }
-  .bar-track {
-    flex: 1;
-    background: var(--bar-bg);
-    border-radius: 10px;
-    height: 10px;
-    overflow: hidden;
-  }
-  .bar-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.4s ease, background 0.4s ease;
-  }
-  .buttons {
+  .cards {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 14px;
   }
-  button {
-    border: none;
-    border-radius: 14px;
-    padding: 12px 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    background: var(--accent);
-    color: white;
-    cursor: pointer;
-    transition: transform 0.1s ease, background 0.2s ease;
+  .card {
+    display: block;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--panel);
+    border: 3px solid #4a4370;
+    box-shadow: 0 0 0 4px var(--screen), 0 10px 0 rgba(0, 0, 0, 0.4);
+    padding: 20px 18px;
+    transition: transform 0.1s ease, border-color 0.15s ease;
   }
-  button:hover { background: var(--accent-dark); }
-  button:active { transform: scale(0.95); }
-  button:disabled {
-    background: #d8cfc9;
-    cursor: not-allowed;
+  .card:hover { border-color: var(--accent); }
+  .card:active { transform: translateY(3px); box-shadow: 0 0 0 4px var(--screen), 0 6px 0 rgba(0, 0, 0, 0.4); }
+  .card-art {
+    font-size: 2.6rem;
+    line-height: 1;
+    margin-bottom: 12px;
   }
-  .footer-row {
-    margin-top: 14px;
+  .card-name {
+    font-family: 'Press Start 2P', monospace;
     font-size: 0.75rem;
-    opacity: 0.6;
+    color: var(--accent);
+    margin-bottom: 8px;
   }
-  .reset-link {
-    background: none;
-    border: none;
-    color: var(--accent-dark);
-    text-decoration: underline;
-    padding: 0;
-    font-size: 0.75rem;
-    font-weight: 400;
+  .card-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
   }
-  .age {
-    font-size: 0.75rem;
-    opacity: 0.7;
-    margin-bottom: 10px;
+  .card-cat { --accent: var(--cat); }
+  .card-fish { --accent: var(--fish); }
+  .foot {
+    margin-top: 22px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
   }
 </style>
 </head>
 <body>
-  <div class="game">
-    <h1>🐱 Michi Tamagotchi</h1>
-    <div class="subtitle">Cuidá a tu gatito virtual</div>
+  <div class="menu">
+    <h1>TAMAGOTCHIS</h1>
+    <div class="subtitle">Elegí a quién cuidar</div>
 
-    <div class="stage">
-      <div id="zzz" class="zzz" style="display:none;">💤</div>
-      <div id="cat" class="cat">😺</div>
+    <div class="cards">
+      <a class="card card-cat" href="cat.html">
+        <div class="card-art">🐱</div>
+        <div class="card-name">MICHI</div>
+        <div class="card-desc">Un gato pixelado. Dale de comer, jugá con el láser y cepillalo.</div>
+      </a>
+
+      <a class="card card-fish" href="fish.html">
+        <div class="card-art">🐠</div>
+        <div class="card-name">PECERA</div>
+        <div class="card-desc">Un pez y su pecera. Alimentalo y mantené el agua limpia.</div>
+      </a>
     </div>
 
-    <div class="catname" id="catname">Michi</div>
-    <div class="age" id="age">Edad: 0 días</div>
-    <div class="status-line" id="statusLine">¡Hola! Estoy listo para jugar.</div>
-
-    <div class="stats">
-      <div class="stat-row">
-        <span class="icon">🍖</span>
-        <div class="bar-track"><div class="bar-fill" id="bar-hunger"></div></div>
-      </div>
-      <div class="stat-row">
-        <span class="icon">😊</span>
-        <div class="bar-track"><div class="bar-fill" id="bar-happy"></div></div>
-      </div>
-      <div class="stat-row">
-        <span class="icon">⚡</span>
-        <div class="bar-track"><div class="bar-fill" id="bar-energy"></div></div>
-      </div>
-      <div class="stat-row">
-        <span class="icon">🧼</span>
-        <div class="bar-track"><div class="bar-fill" id="bar-clean"></div></div>
-      </div>
-    </div>
-
-    <div class="buttons">
-      <button id="btn-feed">🍖 Comida</button>
-      <button id="btn-play">🧶 Jugar</button>
-      <button id="btn-sleep">😴 Dormir</button>
-      <button id="btn-clean">🧼 Bañar</button>
-    </div>
-
-    <div class="footer-row">
-      Progreso guardado automáticamente · <button class="reset-link" id="resetBtn">reiniciar</button>
-    </div>
+    <div class="foot">El progreso de cada uno se guarda por separado</div>
   </div>
-
-<script>
-(function() {
-  const SAVE_KEY = 'michi-tamagotchi-save-v1';
-  const TICK_MS = 3000;
-  const DECAY = { hunger: 1.2, happy: 1.0, energy: 0.8, clean: 0.7 };
-
-  const els = {
-    cat: document.getElementById('cat'),
-    zzz: document.getElementById('zzz'),
-    statusLine: document.getElementById('statusLine'),
-    age: document.getElementById('age'),
-    catname: document.getElementById('catname'),
-    bars: {
-      hunger: document.getElementById('bar-hunger'),
-      happy: document.getElementById('bar-happy'),
-      energy: document.getElementById('bar-energy'),
-      clean: document.getElementById('bar-clean'),
-    },
-    btnFeed: document.getElementById('btn-feed'),
-    btnPlay: document.getElementById('btn-play'),
-    btnSleep: document.getElementById('btn-sleep'),
-    btnClean: document.getElementById('btn-clean'),
-    resetBtn: document.getElementById('resetBtn'),
-  };
-
-  function defaultState() {
-    return {
-      hunger: 80,
-      happy: 80,
-      energy: 80,
-      clean: 80,
-      asleep: false,
-      birthTime: Date.now(),
-      lastUpdate: Date.now(),
-    };
-  }
-
-  let state = load();
-
-  function load() {
-    try {
-      const raw = localStorage.getItem(SAVE_KEY);
-      if (!raw) return defaultState();
-      const parsed = JSON.parse(raw);
-      return Object.assign(defaultState(), parsed);
-    } catch (e) {
-      return defaultState();
-    }
-  }
-
-  function save() {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-  }
-
-  function clamp(v) {
-    return Math.max(0, Math.min(100, v));
-  }
-
-  function applyDecaySince(lastTime) {
-    const now = Date.now();
-    const elapsedSeconds = Math.max(0, (now - lastTime) / 1000);
-    const ticks = elapsedSeconds / (TICK_MS / 1000);
-    if (ticks <= 0) return;
-    const sleepFactor = state.asleep ? 0.3 : 1;
-    state.hunger = clamp(state.hunger - DECAY.hunger * ticks * sleepFactor);
-    state.happy = clamp(state.happy - DECAY.happy * ticks * sleepFactor);
-    state.clean = clamp(state.clean - DECAY.clean * ticks * sleepFactor);
-    if (state.asleep) {
-      state.energy = clamp(state.energy + 1.5 * ticks);
-      if (state.energy >= 100) state.asleep = false;
-    } else {
-      state.energy = clamp(state.energy - DECAY.energy * ticks);
-    }
-  }
-
-  function barColor(value) {
-    if (value > 60) return '#7bd389';
-    if (value > 30) return '#f5c46b';
-    return '#e26a6a';
-  }
-
-  function updateBars() {
-    els.bars.hunger.style.width = state.hunger + '%';
-    els.bars.hunger.style.background = barColor(state.hunger);
-    els.bars.happy.style.width = state.happy + '%';
-    els.bars.happy.style.background = barColor(state.happy);
-    els.bars.energy.style.width = state.energy + '%';
-    els.bars.energy.style.background = barColor(state.energy);
-    els.bars.clean.style.width = state.clean + '%';
-    els.bars.clean.style.background = barColor(state.clean);
-  }
-
-  function updateAge() {
-    const days = Math.floor((Date.now() - state.birthTime) / (1000 * 60 * 60 * 24));
-    const hours = Math.floor(((Date.now() - state.birthTime) / (1000 * 60 * 60)) % 24);
-    els.age.textContent = `Edad: ${days} día(s), ${hours}h`;
-  }
-
-  function currentMood() {
-    const avg = (state.hunger + state.happy + state.energy + state.clean) / 4;
-    if (state.asleep) return 'sleep';
-    if (avg < 30) return 'sad';
-    if (state.hunger < 25) return 'hungry';
-    if (state.clean < 25) return 'dirty';
-    if (avg > 75) return 'happy';
-    return 'neutral';
-  }
-
-  function faceFor(mood) {
-    switch (mood) {
-      case 'sleep': return '😴';
-      case 'sad': return '😿';
-      case 'hungry': return '🙀';
-      case 'dirty': return '😾';
-      case 'happy': return '😻';
-      default: return '😺';
-    }
-  }
-
-  function statusFor(mood) {
-    switch (mood) {
-      case 'sleep': return 'Zzz... durmiendo tranquilo.';
-      case 'sad': return 'Me siento muy triste, necesito atención...';
-      case 'hungry': return 'Tengo hambre, ¿me das de comer?';
-      case 'dirty': return 'Estoy sucio, ¡un baño me vendría bien!';
-      case 'happy': return '¡Me siento genial, gracias por cuidarme!';
-      default: return 'Todo tranquilo por aquí.';
-    }
-  }
-
-  function render() {
-    updateBars();
-    updateAge();
-    const mood = currentMood();
-    els.cat.textContent = faceFor(mood);
-    els.statusLine.textContent = statusFor(mood);
-    els.zzz.style.display = state.asleep ? 'block' : 'none';
-    els.cat.className = 'cat' + (state.asleep ? ' sleep' : (mood === 'sad' ? ' sad' : ''));
-
-    const disableActive = state.asleep;
-    els.btnFeed.disabled = disableActive;
-    els.btnPlay.disabled = disableActive;
-    els.btnClean.disabled = disableActive;
-    els.btnSleep.textContent = state.asleep ? '☀️ Despertar' : '😴 Dormir';
-  }
-
-  function bounceCat() {
-    els.cat.classList.add('bounce');
-    setTimeout(() => els.cat.classList.remove('bounce'), 500);
-  }
-
-  function feed() {
-    if (state.asleep) return;
-    state.hunger = clamp(state.hunger + 25);
-    state.happy = clamp(state.happy + 3);
-    bounceCat();
-    tick();
-  }
-
-  function play() {
-    if (state.asleep) return;
-    state.happy = clamp(state.happy + 20);
-    state.energy = clamp(state.energy - 10);
-    state.hunger = clamp(state.hunger - 5);
-    bounceCat();
-    tick();
-  }
-
-  function toggleSleep() {
-    state.asleep = !state.asleep;
-    tick();
-  }
-
-  function cleanCat() {
-    if (state.asleep) return;
-    state.clean = clamp(state.clean + 30);
-    state.happy = clamp(state.happy + 5);
-    bounceCat();
-    tick();
-  }
-
-  function tick() {
-    applyDecaySince(state.lastUpdate);
-    state.lastUpdate = Date.now();
-    render();
-    save();
-  }
-
-  els.btnFeed.addEventListener('click', feed);
-  els.btnPlay.addEventListener('click', play);
-  els.btnSleep.addEventListener('click', toggleSleep);
-  els.btnClean.addEventListener('click', cleanCat);
-  els.resetBtn.addEventListener('click', () => {
-    if (confirm('¿Reiniciar el juego? Se perderá el progreso de Michi.')) {
-      state = defaultState();
-      save();
-      render();
-    }
-  });
-
-  applyDecaySince(state.lastUpdate);
-  state.lastUpdate = Date.now();
-  save();
-  render();
-
-  setInterval(tick, TICK_MS);
-})();
-</script>
 </body>
 </html>

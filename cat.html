@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michi Tamagotchi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14121f;
+    --shell: #211d33;
+    --shell-border: #34304e;
+    --screen: #0c0a16;
+    --text: #f1eef7;
+    --text-dim: #a49dc2;
+    --pixel-on: #ffe15a;
+    --pixel-off: #3a3552;
+
+    --feed: #ff9f43;
+    --play: #4ecdc4;
+    --sleep: #a78bfa;
+    --clean: #4fc3f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #201c33, var(--bg) 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    padding: 16px;
+  }
+  .game {
+    background: #1b172b;
+    border: 3px solid #4a4370;
+    box-shadow: 0 0 0 4px #0a0812, 0 14px 0 rgba(0,0,0,0.45);
+    padding: 22px;
+    width: 360px;
+    max-width: 100%;
+    text-align: center;
+  }
+  h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin: 4px 0 10px;
+    color: var(--text);
+  }
+  .subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+  }
+  .stage {
+    background: var(--screen);
+    border: 2px solid #050409;
+    padding: 18px 10px;
+    margin-bottom: 16px;
+    position: relative;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: inset 0 3px 12px rgba(0,0,0,0.6);
+  }
+  /* CRT scanlines */
+  .stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 6;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0,0,0,0.30) 0px,
+      rgba(0,0,0,0.30) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+  .cat {
+    display: inline-block;
+    line-height: 0;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+    user-select: none;
+  }
+  .cat-canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+  .photo-row {
+    margin-bottom: 12px;
+  }
+  .photo-btn {
+    background: transparent;
+    border: 1px solid #3a3552;
+    color: var(--text-dim);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.48rem;
+    padding: 8px 14px;
+  }
+  .photo-btn:hover {
+    color: var(--text);
+    border-color: var(--play);
+    filter: none;
+  }
+  .photo-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(8, 6, 14, 0.82);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 20px;
+    cursor: pointer;
+    animation: modalIn 0.18s ease-out;
+  }
+  .photo-modal.hidden { display: none; }
+  @keyframes modalIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .polaroid {
+    background: #f6f3ea;
+    padding: 14px 14px 46px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+    transform: rotate(-2deg);
+    position: relative;
+    animation: polaroidIn 0.28s cubic-bezier(0.2, 1.4, 0.5, 1);
+  }
+  @keyframes polaroidIn {
+    from { transform: rotate(-2deg) scale(0.7); opacity: 0; }
+    to { transform: rotate(-2deg) scale(1); opacity: 1; }
+  }
+  .polaroid-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 3px solid #f6f3ea;
+    border-radius: 50%;
+    background: #e94560;
+    color: #fff;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+  }
+  .polaroid-close:hover {
+    background: #ff5d78;
+    filter: none;
+  }
+  .polaroid-img {
+    display: block;
+    width: 260px;
+    height: 260px;
+    max-width: 68vw;
+    max-height: 68vw;
+    object-fit: cover;
+    background: #ddd8cc;
+  }
+  .polaroid-img.loading { opacity: 0.25; }
+  .polaroid-caption {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 16px;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    line-height: 1.6;
+    color: #6b6486;
+  }
+  .photo-hint {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .cat.bounce { animation: bounce 0.5s ease; }
+  .cat.sleep { animation: sway 3s ease-in-out infinite; }
+  .cat.sad { animation: shiver 0.4s ease; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-18px); }
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-4deg); }
+    50% { transform: rotate(4deg); }
+  }
+  @keyframes shiver {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  .emote-canvas {
+    position: absolute;
+    top: 18px;
+    right: 30px;
+    image-rendering: pixelated;
+    animation: emotePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes emotePulse {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-5px) scale(1.08); }
+  }
+  .play-overlay {
+    position: absolute;
+    inset: 3px;
+    background: var(--screen);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 5;
+  }
+  .play-overlay.hidden { display: none; }
+  .chase-track {
+    position: relative;
+    width: 100%;
+    height: 112px;
+  }
+  .chase-canvas {
+    position: absolute;
+    top: 34px;
+    left: 0;
+    image-rendering: pixelated;
+  }
+  .play-overlay.laser .chase-canvas { animation: chaseCatLaser 1.8s ease-in-out; }
+  .tool-canvas {
+    position: absolute;
+    left: 0;
+    image-rendering: pixelated;
+  }
+  /* brushing: the cat stays put while the brush strokes its back */
+  .play-overlay.brush .chase-canvas {
+    left: 26%;
+    animation: brushWiggle 0.45s ease-in-out infinite;
+  }
+  .play-overlay.brush .tool-canvas {
+    top: 0;
+    animation: brushStroke 0.6s ease-in-out infinite;
+  }
+  @keyframes brushWiggle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(2px); }
+  }
+  @keyframes brushStroke {
+    0%, 100% { left: 30%; }
+    50% { left: 58%; }
+  }
+  .chase-target {
+    position: absolute;
+    top: 0;
+    left: 0;
+    font-size: 1.2rem;
+  }
+  .play-overlay.laser .chase-target { animation: chaseTargetLaser 1.8s ease-in-out; color: #ff3b3b; text-shadow: 0 0 6px #ff3b3b; }
+  @keyframes chaseCatLaser {
+    0% { left: 0; transform: rotate(0deg); }
+    20% { left: 30%; transform: rotate(-4deg); }
+    40% { left: 8%; transform: rotate(4deg); }
+    60% { left: 42%; transform: rotate(-4deg); }
+    80% { left: 15%; transform: rotate(4deg); }
+    100% { left: 32%; transform: rotate(0deg); }
+  }
+  @keyframes chaseTargetLaser {
+    0% { left: 15%; }
+    20% { left: 55%; }
+    40% { left: 25%; }
+    60% { left: 75%; }
+    80% { left: 35%; }
+    100% { left: 60%; }
+  }
+  .play-caption {
+    margin-top: 6px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+  }
+  .catname {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.75rem;
+    margin: 4px 0 8px;
+    color: var(--pixel-on);
+  }
+  .age {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .status-line {
+    font-size: 0.75rem;
+    min-height: 20px;
+    margin-bottom: 14px;
+    color: var(--pixel-on);
+    font-weight: 600;
+  }
+  .stats { margin-bottom: 18px; }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+  .stat-row .icon { width: 22px; text-align: center; font-size: 1rem; }
+  .bar-track {
+    flex: 1;
+    display: flex;
+    gap: 2px;
+    background: var(--screen);
+    border: 1px solid #3a3552;
+    padding: 3px;
+    height: 16px;
+  }
+  .bar-seg {
+    flex: 1;
+    background: var(--pixel-off);
+    transition: background 0.25s ease;
+  }
+  .bar-seg.on { background: var(--seg-color, var(--pixel-on)); }
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  button {
+    border: none;
+    cursor: pointer;
+    transition: transform 0.08s ease, filter 0.15s ease;
+  }
+  button:hover { filter: brightness(1.08); }
+  .buttons button {
+    padding: 12px 8px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    line-height: 1.5;
+    color: #16141f;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
+  }
+  .buttons button:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.55);
+  }
+  #btn-feed { background: var(--feed); }
+  #btn-play { background: var(--play); }
+  #btn-sleep { background: var(--sleep); }
+  #btn-clean { background: var(--clean); }
+  button:disabled {
+    background: #3a3552 !important;
+    color: #756e94;
+    cursor: not-allowed;
+    filter: none;
+  }
+  .footer-row {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+  .reset-link {
+    background: none;
+    border: none;
+    color: var(--sleep);
+    text-decoration: underline;
+    padding: 0;
+    font-size: 0.7rem;
+    font-weight: 400;
+    cursor: pointer;
+  }
+  .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
+  .tabs a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    text-decoration: none;
+    padding: 8px 12px;
+    color: var(--text-dim);
+    background: var(--screen);
+    border: 1px solid var(--shell-border);
+  }
+  .tabs a.active { color: #16141f; background: var(--pixel-on); border-color: var(--pixel-on); }
+</style>
+</head>
+<body>
+  <div class="game">
+    <div class="tabs">
+      <a href="index.html">INICIO</a>
+      <a href="cat.html" class="active">GATO</a>
+      <a href="fish.html">PEZ</a>
+    </div>
+    <h1>🐱 MICHI</h1>
+    <div class="subtitle">Cuidá a tu gatito virtual</div>
+
+    <div class="stage">
+      <canvas id="emoteCanvas" class="emote-canvas" style="display:none;"></canvas>
+      <div id="cat" class="cat"><canvas id="catCanvas" class="cat-canvas"></canvas></div>
+      <div id="playOverlay" class="play-overlay hidden">
+        <div class="chase-track">
+          <span id="chaseTarget" class="chase-target"></span>
+          <canvas id="chaseCanvas" class="chase-canvas"></canvas>
+          <canvas id="toolCanvas" class="tool-canvas" style="display:none;"></canvas>
+        </div>
+        <div class="play-caption" id="playCaption"></div>
+      </div>
+    </div>
+
+    <div class="catname" id="catname">MICHI</div>
+    <div class="age" id="age">Edad: 0 días</div>
+    <div class="status-line" id="statusLine">¡Hola! Estoy listo para jugar.</div>
+
+    <div class="stats">
+      <div class="stat-row">
+        <span class="icon">🍖</span>
+        <div class="bar-track" id="bar-hunger" style="--seg-color:var(--feed)"></div>
+      </div>
+      <div class="stat-row">
+        <span class="icon">😊</span>
+        <div class="bar-track" id="bar-happy" style="--seg-color:var(--play)"></div>
+      </div>
+      <div class="stat-row">
+        <span class="icon">⚡</span>
+        <div class="bar-track" id="bar-energy" style="--seg-color:var(--sleep)"></div>
+      </div>
+      <div class="stat-row">
+        <span class="icon">🪮</span>
+        <div class="bar-track" id="bar-clean" style="--seg-color:var(--clean)"></div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="btn-feed">🍖 Comida</button>
+      <button id="btn-play">🧶 Jugar</button>
+      <button id="btn-sleep">😴 Dormir</button>
+      <button id="btn-clean">🪮 Cepillar</button>
+    </div>
+
+    <div class="photo-row">
+      <button id="btn-photo" class="photo-btn">📷 Gato random</button>
+    </div>
+
+    <div class="footer-row">
+      Progreso guardado automáticamente · <button class="reset-link" id="resetBtn">reiniciar</button>
+    </div>
+  </div>
+
+  <div id="photoModal" class="photo-modal hidden">
+    <div class="polaroid">
+      <button id="btn-photo-close" class="polaroid-close" aria-label="cerrar">×</button>
+      <img id="photoImg" class="polaroid-img" alt="un gato random">
+      <div class="polaroid-caption" id="photoCaption"></div>
+    </div>
+    <div class="photo-hint">tocá en cualquier lado para cerrar</div>
+  </div>
+
+  <audio id="meow1" src="sounds/meow-1889.mp3" preload="auto"></audio>
+  <audio id="meow2" src="sounds/meow-1890.mp3" preload="auto"></audio>
+
+<script>
+(function() {
+  const SAVE_KEY = 'michi-tamagotchi-save-v1';
+  const SEGMENTS = 10;
+  const TICK_MS = 3000;
+  const DECAY = { hunger: 1.2, happy: 1.0, energy: 0.8, clean: 0.7 };
+
+  const els = {
+    cat: document.getElementById('cat'),
+    statusLine: document.getElementById('statusLine'),
+    age: document.getElementById('age'),
+    catname: document.getElementById('catname'),
+    bars: {
+      hunger: document.getElementById('bar-hunger'),
+      happy: document.getElementById('bar-happy'),
+      energy: document.getElementById('bar-energy'),
+      clean: document.getElementById('bar-clean'),
+    },
+    btnFeed: document.getElementById('btn-feed'),
+    btnPlay: document.getElementById('btn-play'),
+    btnSleep: document.getElementById('btn-sleep'),
+    btnClean: document.getElementById('btn-clean'),
+    resetBtn: document.getElementById('resetBtn'),
+    photoModal: document.getElementById('photoModal'),
+    btnPhotoClose: document.getElementById('btn-photo-close'),
+    btnPhoto: document.getElementById('btn-photo'),
+    photoImg: document.getElementById('photoImg'),
+    photoCaption: document.getElementById('photoCaption'),
+    playOverlay: document.getElementById('playOverlay'),
+    chaseCanvas: document.getElementById('chaseCanvas'),
+    toolCanvas: document.getElementById('toolCanvas'),
+    chaseTarget: document.getElementById('chaseTarget'),
+    playCaption: document.getElementById('playCaption'),
+    catCanvas: document.getElementById('catCanvas'),
+    emoteCanvas: document.getElementById('emoteCanvas'),
+  };
+
+  // build pixel-bar segments once
+  Object.values(els.bars).forEach(track => {
+    for (let i = 0; i < SEGMENTS; i++) {
+      const seg = document.createElement('div');
+      seg.className = 'bar-seg';
+      track.appendChild(seg);
+    }
+  });
+
+  function defaultState() {
+    return {
+      hunger: 80,
+      happy: 80,
+      energy: 80,
+      clean: 80,
+      asleep: false,
+      birthTime: Date.now(),
+      lastUpdate: Date.now(),
+      name: 'MICHI',
+      godMode: false,
+    };
+  }
+
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return defaultState();
+      return Object.assign(defaultState(), JSON.parse(raw));
+    } catch (e) {
+      return defaultState();
+    }
+  }
+
+  function save() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  }
+
+  function clamp(v) {
+    return Math.max(0, Math.min(100, v));
+  }
+
+  function applyDecaySince(lastTime) {
+    const now = Date.now();
+    const elapsedSeconds = Math.max(0, (now - lastTime) / 1000);
+    const ticks = elapsedSeconds / (TICK_MS / 1000);
+    if (ticks <= 0 || state.godMode) return;
+    const sleepFactor = state.asleep ? 0.3 : 1;
+    state.hunger = clamp(state.hunger - DECAY.hunger * ticks * sleepFactor);
+    state.happy = clamp(state.happy - DECAY.happy * ticks * sleepFactor);
+    state.clean = clamp(state.clean - DECAY.clean * ticks * sleepFactor);
+    if (state.asleep) {
+      state.energy = clamp(state.energy + 1.5 * ticks);
+      if (state.energy >= 100) state.asleep = false;
+    } else {
+      state.energy = clamp(state.energy - DECAY.energy * ticks);
+    }
+  }
+
+  function updateBarTrack(track, value) {
+    const filled = Math.round((value / 100) * SEGMENTS);
+    const segs = track.children;
+    for (let i = 0; i < segs.length; i++) {
+      segs[i].classList.toggle('on', i < filled);
+    }
+  }
+
+  function updateBars() {
+    updateBarTrack(els.bars.hunger, state.hunger);
+    updateBarTrack(els.bars.happy, state.happy);
+    updateBarTrack(els.bars.energy, state.energy);
+    updateBarTrack(els.bars.clean, state.clean);
+  }
+
+  function updateAge() {
+    const days = Math.floor((Date.now() - state.birthTime) / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(((Date.now() - state.birthTime) / (1000 * 60 * 60)) % 24);
+    els.age.textContent = `Edad: ${days} día(s), ${hours}h`;
+  }
+
+  function currentMood() {
+    const avg = (state.hunger + state.happy + state.energy + state.clean) / 4;
+    if (state.asleep) return 'sleep';
+    if (avg < 30) return 'sad';
+    if (state.hunger < 25) return 'hungry';
+    if (state.clean < 25) return 'dirty';
+    if (avg > 75) return 'happy';
+    return 'neutral';
+  }
+
+  // Random photo of a real cat from cataas.com (no API key needed).
+  function showRandomPhoto() {
+    els.photoModal.classList.remove('hidden');
+    els.photoImg.classList.add('loading');
+    els.photoCaption.textContent = 'buscando...';
+    els.photoImg.src = 'https://cataas.com/cat?width=500&r=' + Date.now();
+  }
+
+  function hidePhoto() {
+    els.photoModal.classList.add('hidden');
+    els.photoImg.removeAttribute('src');
+  }
+
+  // 'o' = filled pixel, '.' = transparent.
+  // Generated from a reference PNG with: node tools/png2grid.js <image>.png 20
+  const SPRITE_BASE = [
+    '...........o.....o..',
+    '..........o.o...o.o.',
+    '..oo.....o...ooo...o',
+    '.o..oooooo.........o',
+    'o..o.o.o.o..o...o..o',
+    'o.o..o.o.o....o....o',
+    '.oo......o...o.o...o',
+    '..o.......o.......o.',
+    '..o........oooooooo.',
+    '..o...............o.',
+    '...o.ooo.oooo.ooo.o.',
+    '...ooo.ooo..ooo.ooo.',
+  ];
+
+  // Second frame of the run cycle: rows that replace the paws.
+  const PAWS_UP = {
+    10: '...o.ooo.oooo.ooo.o.',
+    11: '..ooo.ooo..ooo.ooo..',
+  };
+
+  const INK = '#f6f3ea';
+
+  // The sprite is too small for facial expressions, so mood is shown as an
+  // emote next to the cat.
+  const EMOTES = {
+    happy: {
+      color: '#ff5d8f',
+      rows: [
+        '.oo.oo.',
+        'ooooooo',
+        'ooooooo',
+        '.ooooo.',
+        '..ooo..',
+        '...o...',
+      ],
+    },
+    hungry: {
+      color: '#ffb14e',
+      rows: [
+        '.......',
+        '..o...o',
+        '.ooo.oo',
+        'ooooooo',
+        '.ooo.oo',
+        '..o...o',
+      ],
+    },
+    sad: {
+      color: '#6ec6ff',
+      rows: [
+        '...o...',
+        '...o...',
+        '..ooo..',
+        '.ooooo.',
+        '.ooooo.',
+        '..ooo..',
+      ],
+    },
+    dirty: {
+      color: '#b6a77d',
+      rows: [
+        '..ooo..',
+        '.ooooo.',
+        'oo.o.oo',
+        'ooooooo',
+        '.o.o.o.',
+        '..o.o..',
+      ],
+    },
+    sleep: {
+      color: '#ffe15a',
+      rows: [
+        'ooooooo',
+        '.....oo',
+        '...ooo.',
+        '..ooo..',
+        'oo.....',
+        'ooooooo',
+      ],
+    },
+  };
+
+  function drawPixelRows(canvas, rows, color, scale) {
+    const w = rows[0].length;
+    const h = rows.length;
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = color;
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        if (rows[y][x] === 'o') ctx.fillRect(x * scale, y * scale, scale, scale);
+      }
+    }
+  }
+
+  function drawEmote(mood) {
+    const emote = EMOTES[mood];
+    if (!emote) {
+      els.emoteCanvas.style.display = 'none';
+      return;
+    }
+    drawPixelRows(els.emoteCanvas, emote.rows, emote.color, 5);
+    els.emoteCanvas.style.display = 'block';
+  }
+
+  function drawSprite(canvas, variant, scale) {
+    const rows = SPRITE_BASE.map((row, i) => (variant && PAWS_UP[i]) || row);
+    drawPixelRows(canvas, rows, INK, scale);
+  }
+
+  function statusFor(mood) {
+    switch (mood) {
+      case 'sleep': return 'Zzz... durmiendo tranquilo.';
+      case 'sad': return 'Me siento muy triste, necesito atención...';
+      case 'hungry': return 'Tengo hambre, ¿me das de comer?';
+      case 'dirty': return 'Estoy despeinado, ¡un cepillado me vendría bien!';
+      case 'happy': return '¡Me siento genial, gracias por cuidarme!';
+      default: return 'Todo tranquilo por aquí.';
+    }
+  }
+
+  drawSprite(els.catCanvas, 0, 10);
+
+  function render() {
+    updateBars();
+    updateAge();
+    const mood = currentMood();
+    els.catname.textContent = state.name;
+    els.statusLine.textContent = statusFor(mood);
+    drawEmote(mood);
+    els.cat.className = 'cat'
+      + (state.asleep ? ' sleep' : (mood === 'sad' ? ' sad' : ''));
+
+    const disableActive = state.asleep;
+    els.btnFeed.disabled = disableActive;
+    els.btnPlay.disabled = disableActive;
+    els.btnClean.disabled = disableActive;
+    els.btnSleep.textContent = state.asleep ? '☀️ Despertar' : '😴 Dormir';
+  }
+
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  let currentClip = null;
+  let current8bit = null;
+
+  function stopCurrentSound() {
+    if (currentClip) {
+      currentClip.pause();
+      currentClip.currentTime = 0;
+      currentClip = null;
+    }
+    if (current8bit) {
+      const { osc, gain, ctx } = current8bit;
+      const now = ctx.currentTime;
+      try {
+        gain.gain.cancelScheduledValues(now);
+        gain.gain.setValueAtTime(gain.gain.value, now);
+        gain.gain.linearRampToValueAtTime(0.0001, now + 0.02);
+        osc.stop(now + 0.03);
+      } catch (e) {
+        // already stopped
+      }
+      current8bit = null;
+    }
+  }
+
+  function playMeow8bit(ctx, now) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    current8bit = { osc, gain, ctx };
+    osc.onended = () => { if (current8bit && current8bit.osc === osc) current8bit = null; };
+
+    const steps = [
+      [0.000, 330], [0.030, 330],
+      [0.030, 494], [0.060, 494],
+      [0.060, 660], [0.100, 660],
+      [0.100, 587], [0.140, 587],
+      [0.140, 440], [0.190, 440],
+      [0.190, 349], [0.240, 349],
+    ];
+    steps.forEach(([t, f]) => osc.frequency.setValueAtTime(f, now + t));
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.setValueAtTime(0.16, now + 0.005);
+    gain.gain.setValueAtTime(0.16, now + 0.20);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.26);
+
+    osc.start(now);
+    osc.stop(now + 0.27);
+  }
+
+  const meowClips = [
+    document.getElementById('meow1'),
+    document.getElementById('meow2'),
+  ];
+
+  function playMeowSample() {
+    const clip = meowClips[Math.floor(Math.random() * meowClips.length)];
+    clip.currentTime = 0;
+    clip.volume = 0.7;
+    currentClip = clip;
+    clip.onended = () => { if (currentClip === clip) currentClip = null; };
+    const started = clip.play();
+    if (started && started.catch) {
+      // fall back to the chiptune meow if the mp3 can't play
+      started.catch(() => {
+        currentClip = null;
+        const ctx = getAudioCtx();
+        playMeow8bit(ctx, ctx.currentTime);
+      });
+    }
+  }
+
+  function playMeow() {
+    try {
+      stopCurrentSound();
+      playMeowSample();
+    } catch (e) {
+      // audio unavailable
+    }
+  }
+
+  function bounceCat() {
+    els.cat.classList.add('bounce');
+    setTimeout(() => els.cat.classList.remove('bounce'), 500);
+  }
+
+  let playAnimTimer = null;
+  let chaseFrameTimer = null;
+
+  function runPlayAnimation() {
+    clearTimeout(playAnimTimer);
+    clearInterval(chaseFrameTimer);
+    els.playOverlay.classList.remove('laser', 'brush', 'hidden');
+    void els.playOverlay.offsetWidth; // restart CSS animations
+
+    let frame = 0;
+    drawSprite(els.chaseCanvas, 0, 6);
+    chaseFrameTimer = setInterval(() => {
+      frame = (frame + 1) % 2;
+      drawSprite(els.chaseCanvas, frame, 6);
+    }, 170);
+
+    els.chaseTarget.textContent = '●';
+    els.chaseTarget.style.display = 'block';
+    els.toolCanvas.style.display = 'none';
+    els.playCaption.textContent = '¡Michi persigue el láser!';
+    els.playOverlay.classList.add('laser');
+    els.cat.style.visibility = 'hidden';
+    playAnimTimer = setTimeout(() => {
+      clearInterval(chaseFrameTimer);
+      els.playOverlay.classList.add('hidden');
+      els.playOverlay.classList.remove('laser');
+      els.cat.style.visibility = 'visible';
+    }, 1800);
+  }
+
+  // Side view: handle on top, bristles below.
+  const BRUSH = [
+    'ooooooo',
+    'ooooooo',
+    'o.o.o.o',
+    'o.o.o.o',
+  ];
+
+  function runBrushAnimation() {
+    clearTimeout(playAnimTimer);
+    clearInterval(chaseFrameTimer);
+    els.playOverlay.classList.remove('laser', 'brush', 'hidden');
+    void els.playOverlay.offsetWidth; // restart CSS animations
+
+    drawSprite(els.chaseCanvas, 0, 6);
+    els.chaseTarget.style.display = 'none';
+    drawPixelRows(els.toolCanvas, BRUSH, '#ffd27f', 5);
+    els.toolCanvas.style.display = 'block';
+    els.playCaption.textContent = '¡Michi se deja cepillar!';
+    els.playOverlay.classList.add('brush');
+    els.cat.style.visibility = 'hidden';
+    playAnimTimer = setTimeout(() => {
+      els.playOverlay.classList.add('hidden');
+      els.playOverlay.classList.remove('brush');
+      els.toolCanvas.style.display = 'none';
+      els.cat.style.visibility = 'visible';
+    }, 1800);
+  }
+
+  function feed() {
+    if (state.asleep) return;
+    state.hunger = clamp(state.hunger + 25);
+    state.happy = clamp(state.happy + 3);
+    bounceCat();
+    tick();
+  }
+
+  function play() {
+    if (state.asleep) return;
+    state.happy = clamp(state.happy + 20);
+    state.energy = clamp(state.energy - 10);
+    state.hunger = clamp(state.hunger - 5);
+    runPlayAnimation();
+    tick();
+  }
+
+  function toggleSleep() {
+    state.asleep = !state.asleep;
+    tick();
+  }
+
+  function cleanCat() {
+    if (state.asleep) return;
+    state.clean = clamp(state.clean + 30);
+    state.happy = clamp(state.happy + 5);
+    runBrushAnimation();
+    tick();
+  }
+
+  function tick() {
+    applyDecaySince(state.lastUpdate);
+    state.lastUpdate = Date.now();
+    render();
+    save();
+  }
+
+  els.cat.addEventListener('click', playMeow);
+  els.btnFeed.addEventListener('click', feed);
+  els.btnPlay.addEventListener('click', play);
+  els.btnSleep.addEventListener('click', toggleSleep);
+  els.btnClean.addEventListener('click', cleanCat);
+
+  els.btnPhoto.addEventListener('click', showRandomPhoto);
+  els.btnPhotoClose.addEventListener('click', hidePhoto);
+  els.photoModal.addEventListener('click', hidePhoto);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hidePhoto();
+  });
+  els.photoImg.addEventListener('load', () => {
+    els.photoImg.classList.remove('loading');
+    els.photoCaption.textContent = 'un gato cualquiera';
+  });
+  els.photoImg.addEventListener('error', () => {
+    els.photoImg.classList.remove('loading');
+    els.photoCaption.textContent = 'no se pudo traer la foto :(';
+  });
+  els.resetBtn.addEventListener('click', () => {
+    if (confirm('¿Reiniciar el juego? Se perderá el progreso de Michi.')) {
+      state = defaultState();
+      save();
+      render();
+    }
+  });
+
+  applyDecaySince(state.lastUpdate);
+  state.lastUpdate = Date.now();
+  save();
+  render();
+
+  setInterval(tick, TICK_MS);
+
+  // ---- console cheats ----
+  const STATS = ['hunger', 'happy', 'energy', 'clean'];
+  const DAY_MS = 86400000;
+
+  function setStat(name, value) {
+    const key = String(name).toLowerCase();
+    if (!STATS.includes(key)) return 'Unknown stat. Use: ' + STATS.join(', ') + '.';
+    state[key] = clamp(Number(value));
+    tick();
+    return key + ' = ' + Math.round(state[key]);
+  }
+
+  window.michi = {
+    help() {
+      console.log([
+        '',
+        '  ╔══════════════════════════════════╗',
+        '  ║   MICHI · console cheats         ║',
+        '  ╚══════════════════════════════════╝',
+        '',
+        '  michi.status()            show stats',
+        '  michi.fill()              everything to 100',
+        '  michi.drain()             everything to 0',
+        '  michi.set("hunger", 50)   set one stat',
+        '  michi.god()               toggle: stats stop decaying',
+        '  michi.age(30)             add days of age',
+        '  michi.rename("Pelusa")    rename the cat',
+        '  michi.meow()              meow',
+        '  michi.play()              play animation',
+        '  michi.photo()             random photo of a real cat',
+        '  michi.reset()             wipe the save',
+        '',
+        '  stats: ' + STATS.join(', '),
+        '',
+      ].join('\n'));
+    },
+    status() {
+      return {
+        name: state.name,
+        hunger: Math.round(state.hunger),
+        happy: Math.round(state.happy),
+        energy: Math.round(state.energy),
+        clean: Math.round(state.clean),
+        asleep: state.asleep,
+        godMode: state.godMode,
+        ageDays: Math.floor((Date.now() - state.birthTime) / DAY_MS),
+      };
+    },
+    set: setStat,
+    fill() {
+      state.hunger = state.happy = state.energy = state.clean = 100;
+      tick();
+      return 'All stats at 100.';
+    },
+    drain() {
+      state.hunger = state.happy = state.energy = state.clean = 0;
+      tick();
+      return 'All stats at 0.';
+    },
+    god() {
+      state.godMode = !state.godMode;
+      tick();
+      return 'God mode ' + (state.godMode ? 'ON: stats no longer decay.' : 'OFF.');
+    },
+    age(days) {
+      state.birthTime -= (Number(days) || 1) * DAY_MS;
+      tick();
+      return state.name + ' is now ' + Math.floor((Date.now() - state.birthTime) / DAY_MS) + ' day(s) old.';
+    },
+    rename(newName) {
+      if (!newName) return 'Name: ' + state.name;
+      state.name = String(newName).toUpperCase().slice(0, 12);
+      tick();
+      return 'Renamed to ' + state.name;
+    },
+    meow() { playMeow(); },
+    play() { play(); },
+    photo() { showRandomPhoto(); },
+    reset() {
+      state = defaultState();
+      save();
+      render();
+      return 'Save wiped.';
+    },
+  };
+
+  console.log(
+    '%c' + [
+      '',
+      '   /\\_/\\   ' + '  michi is listening...',
+      '  ( o.o )  ' + '  type michi.help() for cheats',
+      '   > ^ <   ',
+      '',
+    ].join('\n'),
+    'color:#ffe15a; font-family:monospace; font-size:12px;'
+  );
+})();
+</script>
+</body>
+</html>
