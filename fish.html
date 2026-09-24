@@ -3,99 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pecera Tamagotchi</title>
+<title>Nemo · Tamagochis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
 <style>
   :root {
-    --bg: #0d1420;
-    --screen: #050a12;
-    --text: #eaf4ff;
-    --text-dim: #8fa6c4;
-
-    --water: #7fe3ff;
+    --accent: var(--fish);
+    --water: var(--fish);
     --water-dirty: #9fd15a;
     --water-hungry: #ffd27f;
     --water-bad: #ef7a5f;
-
-    --feed: #ff9f43;
-    --clean: #4fc3f7;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #18263a, var(--bg) 70%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-    padding: 16px;
-  }
-  .game {
-    background: linear-gradient(180deg, #1a2436, #111a28);
-    border: 3px solid #2b3c56;
-    box-shadow: 0 0 0 4px #050a12, 0 14px 0 rgba(0,0,0,0.45);
-    padding: 20px;
-    width: 380px;
-    max-width: 100%;
-    text-align: center;
-  }
-  .tabs {
-    display: flex;
-    gap: 6px;
-    justify-content: center;
-    margin-bottom: 14px;
-  }
-  .tabs a {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    text-decoration: none;
-    padding: 8px 12px;
-    color: var(--text-dim);
-    background: var(--screen);
-    border: 1px solid #2b3c56;
-  }
-  .tabs a.active {
-    color: #10192a;
-    background: var(--water);
-    border-color: var(--water);
-  }
-  h1 {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin: 4px 0 10px;
-  }
-  .subtitle {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    margin-bottom: 14px;
-  }
-  .stage {
-    background: var(--screen);
-    border: 2px solid #050409;
-    padding: 10px 6px;
-    margin-bottom: 14px;
-    position: relative;
-    overflow: hidden;
-  }
-  /* CRT scanlines */
-  .stage::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0,0,0,0.30) 0px,
-      rgba(0,0,0,0.30) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-  }
+  .stage { padding: 10px 6px; }
   .screen {
     margin: 0;
     font-family: 'Courier New', Courier, monospace;
@@ -113,81 +34,8 @@
   .screen.mood-terrible { color: var(--water-bad); }
   /* characters drawn in their own color instead of the water tint */
   .screen .ink-food { color: var(--feed); text-shadow: 0 0 6px currentColor; }
-  .fishname {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.75rem;
-    margin: 4px 0 8px;
-    color: var(--water);
-  }
-  .age {
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .status-line {
-    font-size: 0.8rem;
-    min-height: 34px;
-    margin-bottom: 14px;
-    font-weight: 600;
-  }
-  .buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  button {
-    border: none;
-    border-radius: 0;
-    padding: 13px 6px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    line-height: 1.5;
-    color: #10192a;
-    cursor: pointer;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
-    transition: transform 0.08s ease, filter 0.15s ease;
-  }
-  button:hover { filter: brightness(1.08); }
-  button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.55); }
   #btn-feed { background: var(--feed); }
   #btn-clean { background: var(--clean); }
-  button:disabled {
-    background: #2b3c56 !important;
-    color: #6d819c;
-    cursor: not-allowed;
-    filter: none;
-  }
-  .sound-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 0.72rem;
-    color: var(--text-dim);
-  }
-  .sound-toggle button {
-    background: var(--screen);
-    color: var(--text-dim);
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.5);
-    padding: 7px 12px;
-  }
-  .sound-toggle button.active { background: var(--water); color: #10192a; }
-  .footer-row { font-size: 0.7rem; color: var(--text-dim); }
-  .reset-link {
-    background: none;
-    border: none;
-    box-shadow: none;
-    color: var(--clean);
-    text-decoration: underline;
-    padding: 0;
-    font-family: inherit;
-    font-size: 0.7rem;
-    font-weight: 400;
-    cursor: pointer;
-  }
-  .reset-link:active { transform: none; box-shadow: none; }
   @media (max-width: 400px) {
     .screen { font-size: 10px; }
   }
@@ -195,31 +43,26 @@
 </head>
 <body>
   <div class="game">
-    <div class="tabs">
-      <a href="index.html">INICIO</a>
-      <a href="cat.html">GATO</a>
-      <a href="fish.html" class="active">PEZ</a>
+    <div class="topbar">
+      <nav class="tabs">
+        <a href="cat.html">GATO</a>
+        <a href="fish.html" class="active">PEZ</a>
+      </nav>
+      <button id="btn-mute" class="mute-btn" aria-pressed="false" title="Silenciar">🔊</button>
     </div>
-
-    <h1>&gt;&lt;(((o&gt; PECERA</h1>
+    <h1 id="petName">NEMO</h1>
     <div class="subtitle">Cuidá a tu pez virtual</div>
 
     <div class="stage">
       <pre id="screen" class="screen"></pre>
     </div>
 
-    <div class="fishname" id="fishname">BURBUJA</div>
     <div class="age" id="age">Edad: 0 días</div>
     <div class="status-line" id="statusLine">Todo tranquilo en la pecera.</div>
 
     <div class="buttons">
       <button id="btn-feed">ALIMENTAR</button>
       <button id="btn-clean">LIMPIAR AGUA</button>
-    </div>
-
-    <div class="sound-toggle">
-      <span>sonido</span>
-      <button id="btn-sound" class="active">ON</button>
     </div>
 
     <div class="footer-row">
@@ -235,16 +78,19 @@
   const W = 40;             // tank inner width, in characters
   const H = 11;             // tank inner height (row 0 = surface, last = gravel)
   const SEGMENTS = 10;
-  const DECAY = { food: 1.2, water: 0.7 };
+  // points lost per tick: a full food bar lasts ~40 min
+  const DECAY = { food: 0.12, water: 0.07 };
+  const DEFAULT_NAME = 'NEMO';
+  const MUTE_KEY = 'tamagochis-muted';
 
   const els = {
     screen: document.getElementById('screen'),
     statusLine: document.getElementById('statusLine'),
     age: document.getElementById('age'),
-    fishname: document.getElementById('fishname'),
+    petName: document.getElementById('petName'),
     btnFeed: document.getElementById('btn-feed'),
     btnClean: document.getElementById('btn-clean'),
-    btnSound: document.getElementById('btn-sound'),
+    btnMute: document.getElementById('btn-mute'),
     resetBtn: document.getElementById('resetBtn'),
   };
 
@@ -254,8 +100,7 @@
       water: 80,
       birthTime: Date.now(),
       lastUpdate: Date.now(),
-      name: 'BURBUJA',
-      sound: true,
+      name: DEFAULT_NAME,
       godMode: false,
     };
   }
@@ -264,13 +109,32 @@
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return defaultState();
-      return Object.assign(defaultState(), JSON.parse(raw));
+      const saved = JSON.parse(raw);
+      if (saved.name === 'BURBUJA') saved.name = DEFAULT_NAME;  // old default name
+      delete saved.sound;  // replaced by the shared mute setting
+      return Object.assign(defaultState(), saved);
     } catch (e) {
       return defaultState();
     }
   }
 
   let state = load();
+
+  // Shared with the cat page, so muting one mutes both.
+  let muted = false;
+  try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) {}
+
+  function setMuted(value) {
+    muted = value;
+    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) {}
+    renderMute();
+  }
+
+  function renderMute() {
+    els.btnMute.textContent = muted ? '🔇' : '🔊';
+    els.btnMute.setAttribute('aria-pressed', String(muted));
+    els.btnMute.title = muted ? 'Activar sonido' : 'Silenciar';
+  }
 
   function save() {
     try {
@@ -619,7 +483,7 @@
   }
 
   function tone(type, steps, vol, dur, glide) {
-    if (!state.sound) return;
+    if (muted) return;
     try {
       const ctx = getAudioCtx();
       const now = ctx.currentTime;
@@ -684,10 +548,8 @@
   function render() {
     updateAge();
     const mood = currentMood();
-    els.fishname.textContent = state.name;
+    els.petName.textContent = state.name;
     els.statusLine.textContent = statusFor(mood);
-    els.btnSound.textContent = state.sound ? 'ON' : 'OFF';
-    els.btnSound.classList.toggle('active', state.sound);
     drawScreen();
   }
 
@@ -698,11 +560,9 @@
     bubbles.push({ x: m.x + fish.dir, y: m.y, age: 0 });
     blub();
   });
-  els.btnSound.addEventListener('click', function () {
-    state.sound = !state.sound;
-    if (state.sound) blub();
-    save();
-    render();
+  els.btnMute.addEventListener('click', function () {
+    setMuted(!muted);
+    blub();
   });
   els.resetBtn.addEventListener('click', function () {
     if (confirm('¿Reiniciar la pecera? Se perderá el progreso.')) {
@@ -718,6 +578,7 @@
   state.lastUpdate = Date.now();
   save();
   render();
+  renderMute();
 
   setInterval(tick, TICK_MS);
   setInterval(animate, FRAME_MS);

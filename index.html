@@ -3,60 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamagotchis</title>
+<title>Tamagochis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
 <style>
-  :root {
-    --bg: #10121d;
-    --panel: #1b172b;
-    --screen: #0a0812;
-    --text: #f1eef7;
-    --text-dim: #9d96bb;
-    --cat: #ffe15a;
-    --fish: #7fe3ff;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #1d2033, var(--bg) 70%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-    padding: 20px;
-  }
   .menu {
     width: 380px;
     max-width: 100%;
     text-align: center;
   }
-  h1 {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin: 0 0 8px;
-  }
-  .subtitle {
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    margin-bottom: 26px;
-  }
+  .subtitle { margin-bottom: 24px; }
   .cards {
     display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 14px;
   }
   .card {
     display: block;
     text-decoration: none;
     color: var(--text);
-    background: var(--panel);
-    border: 3px solid #4a4370;
+    background: var(--shell);
+    border: 3px solid var(--shell-border);
     box-shadow: 0 0 0 4px var(--screen), 0 10px 0 rgba(0, 0, 0, 0.4);
-    padding: 20px 18px;
+    padding: 24px 12px 20px;
     transition: transform 0.1s ease, border-color 0.15s ease;
   }
   .card:hover { border-color: var(--accent); }
@@ -64,22 +35,17 @@
   .card-art {
     font-size: 2.6rem;
     line-height: 1;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
   .card-name {
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--accent);
-    margin-bottom: 8px;
-  }
-  .card-desc {
-    font-size: 0.78rem;
-    color: var(--text-dim);
   }
   .card-cat { --accent: var(--cat); }
   .card-fish { --accent: var(--fish); }
   .foot {
-    margin-top: 22px;
+    margin-top: 26px;
     font-size: 0.7rem;
     color: var(--text-dim);
   }
@@ -87,20 +53,18 @@
 </head>
 <body>
   <div class="menu">
-    <h1>TAMAGOTCHIS</h1>
+    <h1>TAMAGOCHIS</h1>
     <div class="subtitle">Elegí a quién cuidar</div>
 
     <div class="cards">
       <a class="card card-cat" href="cat.html">
         <div class="card-art">🐱</div>
-        <div class="card-name">MICHI</div>
-        <div class="card-desc">Un gato pixelado. Dale de comer, jugá con el láser y cepillalo.</div>
+        <div class="card-name">NERMAL</div>
       </a>
 
       <a class="card card-fish" href="fish.html">
         <div class="card-art">🐠</div>
-        <div class="card-name">PECERA</div>
-        <div class="card-desc">Un pez y su pecera. Alimentalo y mantené el agua limpia.</div>
+        <div class="card-name">NEMO</div>
       </a>
     </div>
 

@@ -3,86 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Michi Tamagotchi</title>
+<title>Nermal · Tamagochis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
 <style>
-  :root {
-    --bg: #14121f;
-    --shell: #211d33;
-    --shell-border: #34304e;
-    --screen: #0c0a16;
-    --text: #f1eef7;
-    --text-dim: #a49dc2;
-    --pixel-on: #ffe15a;
-    --pixel-off: #3a3552;
-
-    --feed: #ff9f43;
-    --play: #4ecdc4;
-    --sleep: #a78bfa;
-    --clean: #4fc3f7;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    min-height: 100vh;
-    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
-    background: radial-gradient(circle at 50% 0%, #201c33, var(--bg) 70%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text);
-    padding: 16px;
-  }
-  .game {
-    background: #1b172b;
-    border: 3px solid #4a4370;
-    box-shadow: 0 0 0 4px #0a0812, 0 14px 0 rgba(0,0,0,0.45);
-    padding: 22px;
-    width: 360px;
-    max-width: 100%;
-    text-align: center;
-  }
-  h1 {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin: 4px 0 10px;
-    color: var(--text);
-  }
-  .subtitle {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    margin-bottom: 14px;
-  }
+  :root { --accent: var(--cat); }
   .stage {
-    background: var(--screen);
-    border: 2px solid #050409;
-    padding: 18px 10px;
-    margin-bottom: 16px;
-    position: relative;
-    min-height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    box-shadow: inset 0 3px 12px rgba(0,0,0,0.6);
-  }
-  /* CRT scanlines */
-  .stage::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 6;
-    background: repeating-linear-gradient(
-      0deg,
-      rgba(0,0,0,0.30) 0px,
-      rgba(0,0,0,0.30) 1px,
-      transparent 1px,
-      transparent 3px
-    );
+    padding: 18px 10px;
   }
   .cat {
     display: inline-block;
@@ -100,7 +32,7 @@
   }
   .photo-btn {
     background: transparent;
-    border: 1px solid #3a3552;
+    border: 1px solid var(--line);
     color: var(--text-dim);
     font-family: 'Press Start 2P', monospace;
     font-size: 0.48rem;
@@ -108,7 +40,7 @@
   }
   .photo-btn:hover {
     color: var(--text);
-    border-color: var(--play);
+    border-color: var(--accent);
     filter: none;
   }
   .photo-modal {
@@ -132,7 +64,7 @@
   }
   .polaroid {
     background: #f6f3ea;
-    padding: 14px 14px 46px;
+    padding: 14px 14px 58px;
     box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
     transform: rotate(-2deg);
     position: relative;
@@ -177,13 +109,24 @@
     position: absolute;
     left: 14px;
     right: 14px;
-    bottom: 16px;
+    bottom: 28px;
     text-align: center;
     font-family: 'Press Start 2P', monospace;
     font-size: 0.5rem;
     line-height: 1.6;
     color: #6b6486;
   }
+  .polaroid-credit {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 10px;
+    text-align: center;
+    font-size: 0.62rem;
+    color: #8f89a3;
+  }
+  .polaroid-credit a { color: inherit; }
+  .polaroid-credit a:hover { color: #4a4370; }
   .photo-hint {
     font-size: 0.7rem;
     color: rgba(255, 255, 255, 0.55);
@@ -289,24 +232,6 @@
     font-size: 0.72rem;
     color: var(--text-dim);
   }
-  .catname {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.75rem;
-    margin: 4px 0 8px;
-    color: var(--pixel-on);
-  }
-  .age {
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    margin-bottom: 8px;
-  }
-  .status-line {
-    font-size: 0.75rem;
-    min-height: 20px;
-    margin-bottom: 14px;
-    color: var(--pixel-on);
-    font-weight: 600;
-  }
   .stats { margin-bottom: 18px; }
   .stat-row {
     display: flex;
@@ -320,85 +245,32 @@
     display: flex;
     gap: 2px;
     background: var(--screen);
-    border: 1px solid #3a3552;
+    border: 1px solid var(--line);
     padding: 3px;
     height: 16px;
   }
   .bar-seg {
     flex: 1;
-    background: var(--pixel-off);
+    background: var(--line);
     transition: background 0.25s ease;
   }
-  .bar-seg.on { background: var(--seg-color, var(--pixel-on)); }
-  .buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  button {
-    border: none;
-    cursor: pointer;
-    transition: transform 0.08s ease, filter 0.15s ease;
-  }
-  button:hover { filter: brightness(1.08); }
-  .buttons button {
-    padding: 12px 8px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    line-height: 1.5;
-    color: #16141f;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.55);
-  }
-  .buttons button:active {
-    transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 rgba(0,0,0,0.55);
-  }
+  .bar-seg.on { background: var(--seg-color, var(--accent)); }
   #btn-feed { background: var(--feed); }
   #btn-play { background: var(--play); }
   #btn-sleep { background: var(--sleep); }
   #btn-clean { background: var(--clean); }
-  button:disabled {
-    background: #3a3552 !important;
-    color: #756e94;
-    cursor: not-allowed;
-    filter: none;
-  }
-  .footer-row {
-    font-size: 0.7rem;
-    color: var(--text-dim);
-  }
-  .reset-link {
-    background: none;
-    border: none;
-    color: var(--sleep);
-    text-decoration: underline;
-    padding: 0;
-    font-size: 0.7rem;
-    font-weight: 400;
-    cursor: pointer;
-  }
-  .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; }
-  .tabs a {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    text-decoration: none;
-    padding: 8px 12px;
-    color: var(--text-dim);
-    background: var(--screen);
-    border: 1px solid var(--shell-border);
-  }
-  .tabs a.active { color: #16141f; background: var(--pixel-on); border-color: var(--pixel-on); }
 </style>
 </head>
 <body>
   <div class="game">
-    <div class="tabs">
-      <a href="index.html">INICIO</a>
-      <a href="cat.html" class="active">GATO</a>
-      <a href="fish.html">PEZ</a>
+    <div class="topbar">
+      <nav class="tabs">
+        <a href="cat.html" class="active">GATO</a>
+        <a href="fish.html">PEZ</a>
+      </nav>
+      <button id="btn-mute" class="mute-btn" aria-pressed="false" title="Silenciar">🔊</button>
     </div>
-    <h1>🐱 MICHI</h1>
+    <h1 id="petName">NERMAL</h1>
     <div class="subtitle">Cuidá a tu gatito virtual</div>
 
     <div class="stage">
@@ -414,7 +286,6 @@
       </div>
     </div>
 
-    <div class="catname" id="catname">MICHI</div>
     <div class="age" id="age">Edad: 0 días</div>
     <div class="status-line" id="statusLine">¡Hola! Estoy listo para jugar.</div>
 
@@ -458,6 +329,9 @@
       <button id="btn-photo-close" class="polaroid-close" aria-label="cerrar">×</button>
       <img id="photoImg" class="polaroid-img" alt="un gato random">
       <div class="polaroid-caption" id="photoCaption"></div>
+      <div class="polaroid-credit">
+        foto de <a id="photoCredit" href="https://cataas.com" target="_blank" rel="noopener">cataas.com</a>
+      </div>
     </div>
     <div class="photo-hint">tocá en cualquier lado para cerrar</div>
   </div>
@@ -470,13 +344,18 @@
   const SAVE_KEY = 'michi-tamagotchi-save-v1';
   const SEGMENTS = 10;
   const TICK_MS = 3000;
-  const DECAY = { hunger: 1.2, happy: 1.0, energy: 0.8, clean: 0.7 };
+  // points lost per tick: a full hunger bar lasts ~40 min
+  const DECAY = { hunger: 0.12, happy: 0.1, energy: 0.08, clean: 0.07 };
+  const SLEEP_REGEN = 0.3;
+  const DEFAULT_NAME = 'NERMAL';
+  const MUTE_KEY = 'tamagochis-muted';
 
   const els = {
     cat: document.getElementById('cat'),
     statusLine: document.getElementById('statusLine'),
     age: document.getElementById('age'),
-    catname: document.getElementById('catname'),
+    petName: document.getElementById('petName'),
+    btnMute: document.getElementById('btn-mute'),
     bars: {
       hunger: document.getElementById('bar-hunger'),
       happy: document.getElementById('bar-happy'),
@@ -520,7 +399,7 @@
       asleep: false,
       birthTime: Date.now(),
       lastUpdate: Date.now(),
-      name: 'MICHI',
+      name: DEFAULT_NAME,
       godMode: false,
     };
   }
@@ -531,10 +410,34 @@
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return defaultState();
-      return Object.assign(defaultState(), JSON.parse(raw));
+      const saved = JSON.parse(raw);
+      if (saved.name === 'MICHI') saved.name = DEFAULT_NAME;  // old default name
+      return Object.assign(defaultState(), saved);
     } catch (e) {
       return defaultState();
     }
+  }
+
+  // Shared with the fish page, so muting one mutes both.
+  let muted = false;
+  try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) {}
+
+  function setMuted(value) {
+    muted = value;
+    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) {}
+    if (muted) stopCurrentSound();
+    renderMute();
+  }
+
+  function renderMute() {
+    els.btnMute.textContent = muted ? '🔇' : '🔊';
+    els.btnMute.setAttribute('aria-pressed', String(muted));
+    els.btnMute.title = muted ? 'Activar sonido' : 'Silenciar';
+  }
+
+  // 'NERMAL' -> 'Nermal', for use inside sentences
+  function displayName() {
+    return state.name.charAt(0) + state.name.slice(1).toLowerCase();
   }
 
   function save() {
@@ -555,7 +458,7 @@
     state.happy = clamp(state.happy - DECAY.happy * ticks * sleepFactor);
     state.clean = clamp(state.clean - DECAY.clean * ticks * sleepFactor);
     if (state.asleep) {
-      state.energy = clamp(state.energy + 1.5 * ticks);
+      state.energy = clamp(state.energy + SLEEP_REGEN * ticks);
       if (state.energy >= 100) state.asleep = false;
     } else {
       state.energy = clamp(state.energy - DECAY.energy * ticks);
@@ -737,7 +640,7 @@
     updateBars();
     updateAge();
     const mood = currentMood();
-    els.catname.textContent = state.name;
+    els.petName.textContent = state.name;
     els.statusLine.textContent = statusFor(mood);
     drawEmote(mood);
     els.cat.className = 'cat'
@@ -832,6 +735,7 @@
   }
 
   function playMeow() {
+    if (muted) return;
     try {
       stopCurrentSound();
       playMeowSample();
@@ -864,7 +768,7 @@
     els.chaseTarget.textContent = '●';
     els.chaseTarget.style.display = 'block';
     els.toolCanvas.style.display = 'none';
-    els.playCaption.textContent = '¡Michi persigue el láser!';
+    els.playCaption.textContent = '¡' + displayName() + ' persigue el láser!';
     els.playOverlay.classList.add('laser');
     els.cat.style.visibility = 'hidden';
     playAnimTimer = setTimeout(() => {
@@ -893,7 +797,7 @@
     els.chaseTarget.style.display = 'none';
     drawPixelRows(els.toolCanvas, BRUSH, '#ffd27f', 5);
     els.toolCanvas.style.display = 'block';
-    els.playCaption.textContent = '¡Michi se deja cepillar!';
+    els.playCaption.textContent = '¡' + displayName() + ' se deja cepillar!';
     els.playOverlay.classList.add('brush');
     els.cat.style.visibility = 'hidden';
     playAnimTimer = setTimeout(() => {
@@ -942,6 +846,7 @@
   }
 
   els.cat.addEventListener('click', playMeow);
+  els.btnMute.addEventListener('click', () => setMuted(!muted));
   els.btnFeed.addEventListener('click', feed);
   els.btnPlay.addEventListener('click', play);
   els.btnSleep.addEventListener('click', toggleSleep);
@@ -950,6 +855,8 @@
   els.btnPhoto.addEventListener('click', showRandomPhoto);
   els.btnPhotoClose.addEventListener('click', hidePhoto);
   els.photoModal.addEventListener('click', hidePhoto);
+  // the credit link opens in a new tab without closing the photo
+  document.getElementById('photoCredit').addEventListener('click', (e) => e.stopPropagation());
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hidePhoto();
   });
@@ -962,7 +869,7 @@
     els.photoCaption.textContent = 'no se pudo traer la foto :(';
   });
   els.resetBtn.addEventListener('click', () => {
-    if (confirm('¿Reiniciar el juego? Se perderá el progreso de Michi.')) {
+    if (confirm('¿Reiniciar el juego? Se perderá el progreso de ' + displayName() + '.')) {
       state = defaultState();
       save();
       render();
@@ -973,6 +880,7 @@
   state.lastUpdate = Date.now();
   save();
   render();
+  renderMute();
 
   setInterval(tick, TICK_MS);
 
@@ -988,25 +896,25 @@
     return key + ' = ' + Math.round(state[key]);
   }
 
-  window.michi = {
+  window.cat = {
     help() {
       console.log([
         '',
         '  ╔══════════════════════════════════╗',
-        '  ║   MICHI · console cheats         ║',
+        '  ║   CAT · console cheats           ║',
         '  ╚══════════════════════════════════╝',
         '',
-        '  michi.status()            show stats',
-        '  michi.fill()              everything to 100',
-        '  michi.drain()             everything to 0',
-        '  michi.set("hunger", 50)   set one stat',
-        '  michi.god()               toggle: stats stop decaying',
-        '  michi.age(30)             add days of age',
-        '  michi.rename("Pelusa")    rename the cat',
-        '  michi.meow()              meow',
-        '  michi.play()              play animation',
-        '  michi.photo()             random photo of a real cat',
-        '  michi.reset()             wipe the save',
+        '  cat.status()              show stats',
+        '  cat.fill()                everything to 100',
+        '  cat.drain()               everything to 0',
+        '  cat.set("hunger", 50)     set one stat',
+        '  cat.god()                 toggle: stats stop decaying',
+        '  cat.age(30)               add days of age',
+        '  cat.rename("Pelusa")      rename the cat',
+        '  cat.meow()                meow',
+        '  cat.play()                play animation',
+        '  cat.photo()               random photo of a real cat',
+        '  cat.reset()               wipe the save',
         '',
         '  stats: ' + STATS.join(', '),
         '',
@@ -1065,8 +973,8 @@
   console.log(
     '%c' + [
       '',
-      '   /\\_/\\   ' + '  michi is listening...',
-      '  ( o.o )  ' + '  type michi.help() for cheats',
+      '   /\\_/\\   ' + '  the cat is listening...',
+      '  ( o.o )  ' + '  type cat.help() for cheats',
       '   > ^ <   ',
       '',
     ].join('\n'),
